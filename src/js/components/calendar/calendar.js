@@ -100,15 +100,12 @@ export default class Calendar {
         const currentMonthInCalendar =  this.parentEl.querySelector('.calendar-left-wrapper .calendar-month');
         const nextMonthInCalendar = this.parentEl.querySelector('.calendar-right-wrapper .calendar-month');
 
-        console.log(currentMonthInCalendar);
-
         if (container === '.days-current') {
             const daysRow = document.querySelector(container); // контейнер дней для текущего календаря
             const weekDayStartOf = this.today.startOf('month').format('dd'); // узнаю день недели, с которого начинается текущий месяц
             let lastDayOfPreviousMonth = +this.today.subtract(1, 'month').endOf('month').format('D');
 
             let leftMonth = currentMonthInCalendar.textContent.split(' ')[0];
-            console.log(currentMonth);
 
             let difference = this.daysOfWeek.indexOf(weekDayStartOf);
             const endOf = +this.today.endOf('month').format('D');
@@ -140,7 +137,6 @@ export default class Calendar {
             let lastDayOfPreviousMonth = +this.today.endOf('month').format('D');
 
             let nextMonth = nextMonthInCalendar.textContent.split(' ')[0];
-            console.log(nextMonth);
 
             let difference = this.daysOfWeek.indexOf(weekDayStartOf);
             const endOf = +this.today.add(1, 'month').endOf('month').format('D');
@@ -220,8 +216,14 @@ export default class Calendar {
             this.calendarsOn('Дата возвращения');
         })
         // переключаем календарь "назад"
-        previousArrow.addEventListener('click', (e) => {
-            console.log(e.target);
+        previousArrow.addEventListener('click', () => {
+            const currentMonth = this.months[dayjs().format('M') - 1];
+            const previousMonth = this.months[dayjs().format('M') - 2];
+            console.log(previousMonth, currentMonth);
+
+
+            if (previousArrow.nextElementSibling.textContent.split(' ')[0] === previousMonth) return;
+
 
             this.today = this.today.subtract(1, 'month');
             this.currentMonth = this.today.month();
@@ -233,11 +235,9 @@ export default class Calendar {
             this.clearCalendar('.days-current', '.days-next');
             this.renderCalendar('.days-current');
             this.renderCalendar('.days-next');
-            console.log(this.today, this.currentMonth, this.nextMonth);
         });
         // переключаем календарь "вперед"
-        nextArrow.addEventListener('click', (e) => {
-            console.log(e.target);
+        nextArrow.addEventListener('click', () => {
             this.today = this.today.add(1, 'month');
             this.currentMonth = this.today.month();
             this.nextMonth = this.today.add(1, 'month').month();
@@ -248,7 +248,6 @@ export default class Calendar {
             this.clearCalendar('.days-current', '.days-next');
             this.renderCalendar('.days-current');
             this.renderCalendar('.days-next');
-            console.log(this.today, this.currentMonth,this.nextMonth);
         })
 
         // настраиваю кнопку поля "Когда"
@@ -369,6 +368,10 @@ export default class Calendar {
         if (this.whereBtnIsClicked && this.returnBtnIsClicked) {
             whereBtn.textContent = this.whereBtnTextContent;
             returnBtn.textContent = this.returnBtnTextContent;
+        } else if (this.whereBtnIsClicked && !this.returnBtnIsClicked) {
+            whereBtn.textContent = this.whereBtnTextContent;
+        } else if (!this.whereBtnIsClicked && this.returnBtnIsClicked) {
+            returnBtn.textContent = this.returnBtnTextContent;
         }
 
         if (!this.dayClicked && !this.whereBtnIsClicked) {
@@ -392,7 +395,10 @@ export default class Calendar {
         const whereRemoverEl = whereBtn.nextElementSibling;
         const returnRemoverEl = returnBtn.nextElementSibling;
 
-        if (!target || target.classList.contains('previous')) return;
+        if (!target || target.classList.contains('previous')) return; 
+        // функция определит меньше ли кликнутая дата чем сегодняшняя
+
+        if (target && !this.compareClickedWithToday(target)) return;
 
 
         // здесь проверяю несколько условий: 
@@ -561,7 +567,7 @@ export default class Calendar {
 
         let date;
         let dateToCompare;
-        let targetDataMonth
+        let targetDataMonth;
         let targetDateText;
 
         if (leftCalendar != null) {
@@ -588,5 +594,35 @@ export default class Calendar {
             if (dayjs(date).isSameOrBefore(dateToCompare)) return true;
             return false;
         }
+    }
+    compareClickedWithToday(target) {
+        const today = dayjs().format('YYYY-MM-DD');
+        const leftCalendar = target.closest('.calendar-left-wrapper');
+        const rightCalendar = target.closest('.calendar-right-wrapper');
+
+        let clickedDateMonth;
+        let clickedDate;
+
+        if (leftCalendar != null) {
+            clickedDateMonth = leftCalendar.querySelector('.calendar-month-wrapper .calendar-month');
+        }
+        if (rightCalendar != null) {
+            clickedDateMonth = rightCalendar.querySelector('.calendar-month-wrapper .calendar-month');
+        }
+
+        // const month = this.months[this.months.indexOf(clickedDateMonth.textContent.split(' ')[0])];
+        const month = this.months.indexOf(clickedDateMonth.textContent.split(' ')[0]) + 1;
+        console.log(month);
+
+        clickedDate = `${clickedDateMonth.textContent.split(' ')[1]}-${month}-${target.textContent}`;
+
+        console.log(clickedDate);
+
+        if (dayjs(today).isSameOrBefore(clickedDate)) {
+            console.log('TRUE!')
+            return true;
+        }
+        console.log('FALSE!!!')
+        return false;
     }
 }
