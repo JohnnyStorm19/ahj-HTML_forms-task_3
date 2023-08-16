@@ -218,12 +218,8 @@ export default class Calendar {
         // переключаем календарь "назад"
         previousArrow.addEventListener('click', () => {
             const currentMonth = this.months[dayjs().format('M') - 1];
-            const previousMonth = this.months[dayjs().format('M') - 2];
-            console.log(previousMonth, currentMonth);
-
-
-            if (previousArrow.nextElementSibling.textContent.split(' ')[0] === previousMonth) return;
-
+        // запрещаем переключать, если текущий месяц в левом календаре
+            if (previousArrow.nextElementSibling.textContent.split(' ')[0] === currentMonth) return;
 
             this.today = this.today.subtract(1, 'month');
             this.currentMonth = this.today.month();
